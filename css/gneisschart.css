@@ -2,7 +2,11 @@
 // Make sure to change the name of the font 
 // in the webfont.js loader in index.html
 */
-@import url(http://fonts.googleapis.com/css?family=Cutive); 
+
+@font-face {
+    font-family: 'Avenir';
+    src: url('fonts/AvenirLTStd-Heavy.otf');
+}
 
 svg {
 	font-size: 14px;
@@ -11,6 +15,7 @@ svg {
 svg #ground {
 	fill: #fff;
 	stroke: none;
+	stroke-dasharray: none;
 }
 
 svg #plotArea {
@@ -21,14 +26,21 @@ svg #plotArea {
 svg .axis line {
 	fill: none;
 	shape-rendering: crispEdges;
+	stroke-dasharray:2,3;
+	stroke: #999;
+}
+svg .axis g.zero line {
+	stroke: #999;
+	stroke-dasharray: none;
 }
 
-svg .axis g.zero line {
-		stroke: #666666;
+g.yAxis g:first-child line{
+	stroke-dasharray: none !important;
 }
 
 svg #xAxis line {
 	stroke: #e6e6e6;
+
 }
 
 svg #xAxis{
@@ -41,15 +53,15 @@ svg .axis path {
 }
 
 svg .axis text {
-	font-family: 'Cutive',Helvetica, sans-serif;
+	font-family: 'Avenir', sans-serif !important;
 }
 
 svg .legendItem text {
-	font-family: 'Cutive',Helvetica, sans-serif;
+	font-family: 'Avenir', sans-serif !important;
 }
 
 svg text.metaText {
-	font-family: 'Cutive',Helvetica, sans-serif;
+	font-family: 'Avenir', sans-serif !important;
 	font-size:  10px;
 	text-rendering:   optimizeLegibility;
 	fill:  #999999;
@@ -57,7 +69,8 @@ svg text.metaText {
 
 svg text.barLabel, 
 svg text.bargridLabel {
-	font-family: 'Cutive',Helvetica, sans-serif;
+	font-family: 'Avenir', sans-serif !important;
+	stroke: black;
 }
 
 /*Default styling of series*/
@@ -75,6 +88,7 @@ svg .seriesScatter circle {
 }
 	
 #titleLine {
-	font-family: 'Cutive',Helvetica, sans-serif;
-	fill: #666666;
+	font-family: 'Avenir', sans-serif !important;
+	font-size: 24px;
+	font-weight: 600;
 }

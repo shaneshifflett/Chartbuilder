@@ -273,6 +273,8 @@ ChartBuilder = {
 		canvas.height = $("#chartContainer").height() *2
 
 		var canvasContext = canvas.getContext("2d")
+		canvasContext.font= "10px Avenir"
+		console.log(canvasContext)
 		var svg = $.trim(document.getElementById("chartContainer").innerHTML)
 		canvasContext.drawSvg(svg,0,0)
 		
@@ -297,7 +299,7 @@ ChartBuilder = {
 		// Create SVG image
 		var svgString = $("#chartContainer").html()
 		//add in all the things that validate SVG
-		svgString = '<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n<svg ' + svgString.split("<svg ")[1]
+		//svgString = '<?xml version="1.0" encoding="utf-8"?>\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n<svg ' + svgString.split("<svg ")[1]
 		
 	$("#downloadSVGLink").attr("href","data:text/svg,"+ encodeURI(svgString.split("PTSerif").join("PT Serif")) )
 		.attr("download",function(){ return filename + "_chartbuilder.svg"
