@@ -70,7 +70,8 @@ svg text.metaText {
 svg text.barLabel, 
 svg text.bargridLabel {
 	font-family: 'Avenir', sans-serif !important;
-	stroke: black;
+	stroke: none;
+	fill: black !important;
 }
 
 /*Default styling of series*/
