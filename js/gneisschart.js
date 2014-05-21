@@ -165,11 +165,11 @@ Gneiss.helper = {
       data.push(ext[0]);
       data.push(ext[1]);
     }
-    
     return d3.extent(data);
   },
   columnXandHeight: function(d, domain) {
     //a function to find the proper value to cut off a column
+    //5/21/2014: column / bar graphs should start at 0, this logic also returns different values after toggling between bar and col chart
     if(d > 0 && domain[0] > 0) {
       return domain[0];
     }
@@ -712,8 +712,8 @@ function Gneiss(config)
 						y[i].domain[j] = calculatedDomain[j];
 					}
 				}
-
-				if(g.isBargrid()) {
+				console.log("OMG HERE", g.isColumn)
+				if(g.isBargrid()  || (g.isColumn !== undefined && g.isColumn)) {
 					y[i].domain[0] = Math.min(y[i].domain[0], 0);
 				}
 			}
@@ -818,14 +818,16 @@ function Gneiss(config)
 		if(g.isBargrid()) {
 			rangeArray = [p.top, g.height() - p.bottom];
 		}
-		else if(g.hasColumns()) {
+		else if(g.hasColumns() || (g.isColumn !== undefined && g.isColumn)) {
 			var left;
 			var right;
 			var halfColumnWidth = g.columnGroupWidth() / 2;
+			//5/21/2014: override as this is set after changing chart types, add some padding so bars don't hit the ends
+			p = {top: 24.015625, bottom: 50, left: 10, right: 10};
 
 			left = p.left + halfColumnWidth + ((g.yAxis().length == 1) ? 0 : d3.selectAll("#leftAxis.yAxis g:not(.topAxisItem) text")[0].pop().getBoundingClientRect().width + g.axisBarGap());
 			right = g.width() - p.right - d3.selectAll("#rightAxis.yAxis g:not(.topAxisItem) text")[0].pop().getBoundingClientRect().width - halfColumnWidth - g.axisBarGap();
-			rangeArray = [left,right];
+			rangeArray = [left + 50,right - 50];
 		}
 		else {
 			rangeArray = [p.left, g.width() - p.right];
@@ -1262,6 +1264,7 @@ function Gneiss(config)
 				}
 				else {
 					//adjust padding for bargrid
+
 					if(g.padding().left - pwidth < g.defaultPadding().left) {
 						g.padding().left = pwidth + g.defaultPadding().left;
 						g.redraw() //CHANGE (maybe)
@@ -1312,12 +1315,15 @@ function Gneiss(config)
 
 		// Determine the proper column width
 		var effectiveChartWidth = g.width() - g.padding().right - g.padding().left - g.axisBarGap();
+		/*
 		try {
+			//5/21/2014: this comes out to be far less than the actual width of the chart after changing chart types between column/bar commenting out for now (has no apprent sizing effects without it)
 			effectiveChartWidth = g.xAxis().scale.range()[1] - g.xAxis().scale.range()[0];
 		}
 		catch(e) {
 			//do nothing if there's no scale object yet
 		}
+		*/
 
 		var columnWidth = Math.floor((effectiveChartWidth / numDataPoints) / numColumnSeries);
 		columnWidth = columnWidth - g.columnGap()
@@ -1372,7 +1378,7 @@ function Gneiss(config)
 			var columnRects;
 			var lineSeriesDots = g.seriesContainer.selectAll("g.lineSeriesDots");
 			var scatterSeries = g.seriesContainer.selectAll("g.seriesScatter");			
-				
+			console.log(columnGroups, columnRects)	
 			//create a group to contain the legend items
 			g.legendItemContainer = g.chartElement().append("g")
 				.attr("id","legendItemContainer");
@@ -1384,7 +1390,6 @@ function Gneiss(config)
 						.attr("class","seriesColumn seriesGroup")
 						.attr("fill",function(d,i){return d.color? d.color : colors[i+sbt.line.length]})
 						.attr("transform",function(d,i){return "translate("+(i*columnGroupShift - (columnGroupShift * (sbt.column.length-1)/2))+",0)"})
-						
 				columnGroups.selectAll("rect")
 					.data(function(d,i){return d.data})
 					.enter()
@@ -1392,7 +1397,8 @@ function Gneiss(config)
 						.attr("width",columnWidth)
 						.attr("height", function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return Math.abs(g.yAxis()[yAxisIndex].scale(d)-g.yAxis()[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,g.yAxis()[yAxisIndex].scale.domain())))})
 						.attr("x", function(d,i) {
-							return g.xAxis().scale(g.xAxisRef()[0].data[i])  - columnWidth/2
+							var x = g.xAxis().scale(g.xAxisRef()[0].data[i])  - columnWidth/2;
+							return x;
 							})
 						.attr("y",function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return (g.yAxis()[yAxisIndex].scale(d)-g.yAxis()[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,g.yAxis()[yAxisIndex].scale.domain()))) >= 0 ? g.yAxis()[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,g.yAxis()[yAxisIndex].scale.domain())) : g.yAxis()[yAxisIndex].scale(d)})
 								
@@ -1510,8 +1516,9 @@ function Gneiss(config)
 				.append("rect")
 				.attr("height", g.bargridBarThickness()) 
 				.attr("width", function(d,i) {
-					yAxisIndex = d3.select(this.parentNode).data()[0].axis; 
-					return Math.abs(g.yAxis()[yAxisIndex].scale(d) - g.yAxis()[yAxisIndex].scale(0))
+					yAxisIndex = d3.select(this.parentNode).data()[0].axis;
+					var widht = Math.abs(g.yAxis()[yAxisIndex].scale(d) - g.yAxis()[yAxisIndex].scale(0));
+					return width;
 				})
 				.attr("x", function(d,i) {
 					yAxisIndex = d3.select(this.parentNode).data()[0].axis; 
@@ -1527,7 +1534,8 @@ function Gneiss(config)
 					.attr("height", g.bargridBarThickness()) 
 					.attr("width", function(d,i) {
 						yAxisIndex = d3.select(this.parentNode).data()[0].axis;
-						return Math.abs(g.yAxis()[yAxisIndex].scale(d) - g.yAxis()[yAxisIndex].scale(0))
+						var width = Math.abs(g.yAxis()[yAxisIndex].scale(d) - g.yAxis()[yAxisIndex].scale(0));
+						return width;
 					})
 					.attr("x", function(d,i) {
 						yAxisIndex = d3.select(this.parentNode).data()[0].axis;
@@ -1551,7 +1559,7 @@ function Gneiss(config)
 				barLabels.text(function(d,i){
 					var yAxisIndex = d3.select(this.parentNode).data()[0].axis;
 					var output = g.numberFormat(d);
-					if((i==0 && g.yAxis()[yAxisIndex].prefix.use == "top") || g.yAxis()[yAxisIndex].prefix.use == "all") {
+					if(( g.yAxis()[yAxisIndex].prefix.use == "top") || g.yAxis()[yAxisIndex].prefix.use == "all") {
 						output = g.yAxis()[yAxisIndex].prefix.value + output;
 					}
 					else if (g.yAxis()[yAxisIndex].prefix.use == "positive" && d > 0){
@@ -1615,7 +1623,6 @@ function Gneiss(config)
 			}
 			else {
 				//Not a bargrid
-				
 				//add columns to chart
 				columnGroups = g.seriesContainer.selectAll("g.seriesColumn")
 					.data(sbt.column)
@@ -1648,12 +1655,27 @@ function Gneiss(config)
 				columnRects.transition()
 					.duration(500)
 					.attr("width",columnWidth)
-					.attr("height", function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return Math.abs(g.yAxis()[yAxisIndex].scale(d) - g.yAxis()[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,g.yAxis()[yAxisIndex].scale.domain())))})
+					.attr("height", function(d,i) {
+						var yAxisIndex = d3.select(this.parentNode).data()[0].axis;
+						var domain = g.yAxis()[yAxisIndex].scale.domain();
+						var something = Gneiss.helper.columnXandHeight(d, domain)
+						return Math.abs(g.yAxis()[yAxisIndex].scale(d) - g.yAxis()[yAxisIndex].scale(something));
+					})
 					.attr("x",g.xAxis().type =="date" ? 
 							function(d,i) {return g.xAxis().scale(g.xAxisRef()[0].data[i])  - columnWidth/2}:
-							function(d,i) {return g.xAxis().scale(i) - columnWidth/2}
+							function(d,i) {
+								var xpos = g.xAxis().scale(i) - columnWidth/2;
+								console.log(xpos, g.xAxis().scale(i));
+								return xpos;
+							}
 					)
-					.attr("y",function(d,i) {yAxisIndex = d3.select(this.parentNode).data()[0].axis; return (g.yAxis()[yAxisIndex].scale(d)-g.yAxis()[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,g.yAxis()[yAxisIndex].scale.domain()))) >= 0 ? g.yAxis()[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,g.yAxis()[yAxisIndex].scale.domain())) : g.yAxis()[yAxisIndex].scale(d)})
+					.attr("y",function(d,i) {
+						yAxisIndex = d3.select(this.parentNode).data()[0].axis;
+						var scaleVal = g.yAxis()[yAxisIndex].scale(d);
+						var domain = g.yAxis()[yAxisIndex].scale.domain();
+						var otherThing =  g.yAxis()[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,domain));
+						var something = scaleVal - otherThing
+						return something >= 0 ? g.yAxis()[yAxisIndex].scale(Gneiss.helper.columnXandHeight(d,g.yAxis()[yAxisIndex].scale.domain())) : g.yAxis()[yAxisIndex].scale(d)})
 				
 				columnRects.exit().remove()
 			

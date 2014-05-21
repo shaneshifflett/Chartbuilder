@@ -401,6 +401,11 @@ ChartBuilder = {
 				chart.series()[index].type = val;
 				var hasBargrid = false;
 				chart.setPadding();
+				if(val === 'column'){
+					chart.isColumn = true;
+				}else{
+					chart.isColumn = false;
+				}
 				ChartBuilder.setChartArea();
 				chart.setXScales()
 					.resize();
